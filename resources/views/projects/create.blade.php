@@ -3,7 +3,7 @@
 @section('content')
 <h1>Create a Project</h1>
 
-<form method="post" action="/projects">
+<form class="bg-red-500" method="post" action="/projects">
     @csrf
 
     <div>
