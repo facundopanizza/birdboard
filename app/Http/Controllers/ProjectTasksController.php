@@ -18,14 +18,27 @@ class ProjectTasksController extends Controller
         return redirect($project->path());
     }
 
+    public function destroy(Project $project, Task $task)
+    {
+        $task->delete();
+
+        return redirect($project->path());
+    }
+
     public function update(Project $project, Task $task)
     {
         $this->authorize('update', $task->project);
 
-        request()->validate(['body' => ['required']]);
+        $validated = request()->validate(['body' => ['required']]);
+
+        if(request('completed')) {
+            $task->complete();
+        } else {
+            $task->incomplete();
+        }
+
         $task->update([
-            'body' => request('body'),
-            'completed' => request()->has('completed')
+            'body' =>  $validated['body']
         ]);
 
         return redirect($project->path());

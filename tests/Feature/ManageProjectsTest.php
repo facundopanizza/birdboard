@@ -67,9 +67,33 @@ class ManageProjectsTest extends TestCase
 
         $this->signIn($project->owner);
 
-        $this->patch($project->path(), ['notes' => 'changed']);
+        $this->patch($project->path(), [
+            'title' => 'New title',
+            'description' => 'New description',
+            'notes' => 'changed',
+            ]);
 
-        $this->assertDatabaseHas('projects', ['notes' => 'changed']);
+        $this->assertDatabaseHas('projects', [
+            'title' => 'New title',
+            'description' => 'New description',
+            'notes' => 'changed',
+        ]);
+    }
+
+    /** @test */
+    public function a_user_can_update_a_project_general_notes()
+    {
+        $project = ProjectFactory::create();
+
+        $this->signIn($project->owner);
+
+        $this->patch($project->path(), [
+            'notes' => 'changed',
+            ]);
+
+        $this->assertDatabaseHas('projects', [
+            'notes' => 'changed',
+        ]);
     }
 
     /** @test */

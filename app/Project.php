@@ -21,10 +21,19 @@ class Project extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    } 
+    public function activity()
+    {
+        return $this->hasMany(Activity::class)->latest();
     }
 
     public function addTask($body)
     {
         return $this->tasks()->create(['body' => $body]);
+    }
+
+    public function recordActivity($description)
+    {
+        $this->activity()->create(['description' => $description]);
     }
 }

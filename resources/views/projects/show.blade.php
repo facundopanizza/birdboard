@@ -7,7 +7,7 @@
             <a href="/projects">My Projecs</a> / {{ $project->title }}
         </p>
 
-        <a href="/projects/create" class="button">New Project</a>
+        <a href="{{ $project->path() . '/edit' }}" class="button">Edit Project</a>
     </div>
 </header>
 <main>
@@ -47,6 +47,14 @@
 
                     <button type="submit" class="button mt-3">Save</button>
                 </form>
+
+                @if($errors->any())
+                    <div class="text-red-500 text-sm mt-4">
+                        @foreach($errors->all() as $error)
+                            <p>{{ $error }}</p>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -54,6 +62,8 @@
             <div class="w-full mb-4 h-6 text-lg opacity-0">
             </div>
             @include('projects.card')
+
+            @include('projects.activity.card')
         </div>
     </div>
 </main>

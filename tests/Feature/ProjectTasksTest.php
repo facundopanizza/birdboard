@@ -8,7 +8,7 @@ use Facades\Tests\Setup\ProjectFactory;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class ProjectTasksTest extends TestCase
+class TriggerTasksTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -63,6 +63,65 @@ class ProjectTasksTest extends TestCase
 
         $this->assertDatabaseHas('tasks', [
             'body' => 'changed',
+        ]);
+    }
+
+    /** @test */
+    public function a_task_can_be_deleted()
+    {
+        $this->withoutExceptionHandling();
+
+        $project = ProjectFactory::withTasks(1)->create();
+
+        $this->signIn($project->owner);
+
+        $this->delete($project->tasks->first()->path());
+
+        $this->assertCount(0, $project->fresh()->tasks);
+    }
+
+    /** @test */
+    public function a_task_can_be_completed()
+    {
+        $this->withoutExceptionHandling();
+
+        $project = ProjectFactory::withTasks(1)->create();
+
+        $this->signIn($project->owner);
+
+        $this->patch($project->tasks->first()->path(), [
+            'body' => 'changed',
+            'completed' => true
+        ]);
+
+        $this->assertDatabaseHas('tasks', [
+            'body' => 'changed',
+            'completed' => true
+        ]);
+    }
+
+    /** @test */
+    public function a_task_can_be_incomplete()
+    {
+        $this->withoutExceptionHandling();
+
+        $project = ProjectFactory::withTasks(1)->create();
+
+        $this->signIn($project->owner);
+
+        $this->patch($project->tasks->first()->path(), [
+            'body' => 'changed',
+            'completed' => true
+        ]);
+
+        $this->patch($project->tasks->first()->path(), [
+            'body' => 'incompleted',
+            'completed' => false
+        ]);
+
+        $this->assertDatabaseHas('tasks', [
+            'body' => 'incompleted',
+            'completed' => '0'
         ]);
     }
 
