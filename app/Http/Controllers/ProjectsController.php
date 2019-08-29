@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 
 class ProjectsController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $projects = auth()->user()->projects;
 
         return view('projects.index', compact('projects'));
@@ -48,12 +49,12 @@ class ProjectsController extends Controller
     public function update(Project $project)
     {
         $this->authorize('update', $project);
-        
+
         $attributes = request()->validate([
             'title' => 'sometimes|required',
             'description' => 'sometimes|required',
             'notes' => 'nullable',
-            ]);
+        ]);
 
         $project->update($attributes);
 

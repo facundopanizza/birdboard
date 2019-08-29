@@ -37,4 +37,22 @@ class Task extends Model
 
         return $this;
     }
+
+    public function activity()
+    {
+        return $this->morphMany(Activity::class, 'subject')->latest();
+    }
+
+    public function addTask($body)
+    {
+        return $this->tasks()->create(['body' => $body]);
+    }
+
+    public function recordActivity($description)
+    {
+        $this->activity()->create([
+            'project_id' => $this->project_id,
+            'description' => $description
+            ]);
+    }
 }
