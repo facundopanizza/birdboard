@@ -7,7 +7,15 @@
             <a href="/projects">My Projecs</a> / {{ $project->title }}
         </p>
 
-        <a href="{{ $project->path() . '/edit' }}" class="button">Edit Project</a>
+        <div class="flex items-center">
+            @foreach ($project->members as $member)
+                <img class="rounded-full mr-2 w-10" src="{{ gravatar_url($member->email) }}" alt="{{ $member->name }}'s avatar'">
+            @endforeach
+
+            <img class="rounded-full mr-2 w-10" src="{{ gravatar_url($project->owner->email) }}" alt="{{ gravatar_url($project->owner->email) }}'s avatar'">
+
+            <a href="{{ $project->path() . '/edit' }}" class="button ml-4">Edit Project</a>
+        </div>
     </div>
 </header>
 <main>
@@ -62,8 +70,11 @@
             <div class="w-full mb-4 h-6 text-lg opacity-0">
             </div>
             @include('projects.card')
-
             @include('projects.activity.card')
+
+            @can ('manage', $project)
+                @include ('projects.invite')
+            @endcan
         </div>
     </div>
 </main>

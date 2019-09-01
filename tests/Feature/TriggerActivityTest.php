@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Task;
+use App\Project;
 use Tests\TestCase;
 use Facades\Tests\Setup\ProjectFactory;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -20,7 +21,7 @@ class RecordActivityTest extends TestCase
         $this->assertCount(1, $project->activity);
 
         tap($project->activity->first(), function($activity) {
-            $this->assertEquals('created', $activity->description);
+            $this->assertEquals('created_project', $activity->description);
             $this->assertNull($activity->changes);
         });
     }
@@ -28,6 +29,7 @@ class RecordActivityTest extends TestCase
     /** @test */
     public function updating_a_project()
     {
+        $this->withoutExceptionHandling();
         $project = ProjectFactory::create();
         $originalTitle = $project->title;
 
@@ -40,6 +42,7 @@ class RecordActivityTest extends TestCase
                 'after' => ['title' => 'Changed']
             ];
 
+            $this->assertEquals('updated_project', $activity->description);
             $this->assertEquals($expected, $activity->changes);
         });
     }
@@ -47,11 +50,12 @@ class RecordActivityTest extends TestCase
     /** @test */
     public function creating_a_new_task()
     {
+        $this->withExceptionHandling();
         $project = ProjectFactory::withTasks(1)->create();
 
-        $this->assertCount(2, $project->activity);
+        $this->assertCount(1, $project->activity);
 
-        tap($project->activity->last(), function ($activity) {
+        tap($project->tasks->first()->activity->last(), function ($activity) {
             $this->assertEquals('created_task', $activity->description);
             $this->assertInstanceOf(Task::class, $activity->subject);
         });
@@ -64,9 +68,9 @@ class RecordActivityTest extends TestCase
 
         $project->tasks->first()->complete();
 
-        $this->assertCount(3, $project->activity);
+        $this->assertCount(2, $project->tasks->first()->activity);
 
-        tap($project->activity->last(), function ($activity) {
+        tap($project->tasks->first()->activity->last(), function ($activity) {
             $this->assertEquals('completed_task', $activity->description);
             $this->assertInstanceOf(Task::class, $activity->subject);
         });
@@ -81,9 +85,9 @@ class RecordActivityTest extends TestCase
 
         $project->tasks->first()->incomplete();
 
-        $this->assertCount(4, $project->activity);
+        $this->assertCount(3, $project->tasks->first()->activity);
 
-        tap($project->activity->last(), function ($activity) {
+        tap($project->tasks->first()->activity->last(), function ($activity) {
             $this->assertEquals('incompleted_task', $activity->description);
             $this->assertInstanceOf(Task::class, $activity->subject);
         });
@@ -96,9 +100,10 @@ class RecordActivityTest extends TestCase
 
         $project->tasks[0]->delete();
 
-        $this->assertCount(3, $project->activity);
+        $this->assertCount(1, $project->activity);
+        $this->assertCount(2, $project->tasks->first()->activity);
 
-        tap($project->activity->last(), function ($activity) {
+        tap($project->tasks->first()->activity->last(), function ($activity) {
             $this->assertEquals('deleted_task', $activity->description);
         });
     }

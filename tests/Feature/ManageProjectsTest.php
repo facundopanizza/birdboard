@@ -96,6 +96,40 @@ class ManageProjectsTest extends TestCase
         ]);
     }
 
+     /** @test */
+    public function unauthorized_users_cannot_delete_a_project()
+    {
+        $project = ProjectFactory::create();
+
+
+        $this->delete($project->path())
+            ->assertRedirect('/login');
+
+        $this->signIn();
+
+        $user = auth()->user();
+
+        $this->delete($project->path())->assertStatus(403);
+
+        $project->invite($user);
+
+        $this->actingAs($user)->delete($project->path())->assertStatus(403);
+    }
+
+    /** @test */
+    public function a_user_can_delete_a_project()
+    {
+        $this->withoutExceptionHandling();
+        $project = ProjectFactory::create();
+
+
+        $this->actingAs($project->owner)
+            ->delete($project->path())
+            ->assertRedirect('/projects');
+
+        $this->assertDatabaseMissing('projects', $project->only('id'));
+    }
+
     /** @test */
     public function a_user_can_view_their_project()
     {
@@ -154,5 +188,19 @@ class ManageProjectsTest extends TestCase
         $project = ProjectFactory::create();
 
         $this->assertInstanceOf('App\User', $project->owner);
+    }
+
+    /** @test */
+    public function a_user_can_see_all_projets_they_have_been_invited_to_on_their_dashboard()
+    {
+        $this->signIn();
+        $user = auth()->user();
+
+        $project = ProjectFactory::create();
+        
+        $project->invite($user);
+
+        $this->get('/projects')
+            ->assertSee($project->title);
     }
 }

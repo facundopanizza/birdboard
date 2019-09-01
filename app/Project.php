@@ -2,14 +2,15 @@
 
 namespace App;
 
-use Illuminate\Support\Arr;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
+    use RecordsActivity;
+
     protected $guarded = [];
 
-    public $old = [];
+    protected static $recordableEvents = ['created', 'updated'];
 
     public function path()
     {
@@ -25,32 +26,19 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
-    public function activity()
-    {
-        return $this->hasMany(Activity::class)->latest();
-    }
 
     public function addTask($body)
     {
         return $this->tasks()->create(['body' => $body]);
     }
 
-    public function recordActivity($description)
+    public function invite(User $user)
     {
-        $this->activity()->create([
-                'description' => $description,
-                'changes' => $this->activityChanges($description)
-            ]);
+        return $this->members()->attach($user);
     }
 
-    public function activityChanges($description)
+    public function members()
     {
-        if ($description !== 'updated') {
-            return null;
-        }
-        return [
-            'before' => Arr::except(array_diff_assoc($this->old, $this->getAttributes()), 'updated_at'),
-            'after' => Arr::except($this->getChanges(), 'updated_at')
-        ];
+        return $this->belongsToMany(User::class, 'project_members')->withTimestamps();
     }
 }
